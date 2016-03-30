@@ -53,9 +53,9 @@ DELIMITER ;
 
 DELIMITER $$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(
-IN p_username VARCHAR(255)
+IN p_useremail VARCHAR(255)
 )
 BEGIN
-    select * from User where UserName = p_username;
+    select * from User where Useremail = p_username;
 END$$
 DELIMITER ;
