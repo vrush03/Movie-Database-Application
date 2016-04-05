@@ -118,6 +118,7 @@ def addMovie():
             _directorFirstName1 = request.form['inputDirectorFirstName1']
             _directorLastName1 = request.form['inputDirectorLastName1']
 
+
             conn = mysql.connect()
             cursor = conn.cursor()
             cursor.callproc('sp_addMovie',(_title,_releaseYear,_rating,_synopsis,_movieLength,_genre))
@@ -135,7 +136,27 @@ def addMovie():
                 for j in i:
                     MovieID = j
 
-            return render_template('error.html',error = str(MovieID))
+            cursor.callproc('sp_addDirectorName',(_directorFirstName1,_directorLastName1))
+            data = cursor.fetchall()
+            if len(data) is 0:
+                conn.commit()
+                #return redirect('/userHome')
+                cursor.execute("SELECT DirectorID FROM Director WHERE FirstName = %s AND LastName = %s", (_directorFirstName1,_directorLastName1,))
+                data = cursor.fetchall()
+                for i in data:
+                    for j in i:
+                        DirectorID = j
+                cursor.callproc('sp_addDirectedBy',(DirectorID,MovieID))
+                data = cursor.fetchall()
+                if len(data) is 0:
+                    conn.commit()
+                    return redirect('/userHome')
+                else:
+                    return render_template('error.html',error = 'An error occurred!')
+
+            else:
+                return render_template('error.html',error = 'An error occurred!')
+
 
 
 
