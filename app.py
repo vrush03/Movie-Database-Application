@@ -115,6 +115,8 @@ def addMovie():
             _synopsis = request.form['inputSynopsis']
             _movieLength = request.form['inputMovieLength']
             _genre = request.form['inputGenre']
+            _directorFirstName1 = request.form['inputDirectorFirstName1']
+            _directorLastName1 = request.form['inputDirectorLastName1']
 
             conn = mysql.connect()
             cursor = conn.cursor()
@@ -123,9 +125,20 @@ def addMovie():
 
             if len(data) is 0:
                 conn.commit()
-                return redirect('/userHome')
+                #return redirect('/userHome')
             else:
                 return render_template('error.html',error = 'An error occurred!')
+
+            cursor.execute("SELECT MovieID FROM Movie WHERE Title = %s", (_title,))
+            data = cursor.fetchall()
+            for i in data:
+                for j in i:
+                    MovieID = j
+
+            return render_template('error.html',error = str(MovieID))
+
+
+
 
         else:
             return render_template('error.html',error = 'Unauthorized Access')
