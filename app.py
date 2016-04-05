@@ -105,6 +105,37 @@ def logout():
     session.pop('user',None)
     return redirect('/')
 
+@app.route('/addMovie',methods=['POST'])
+def addMovie():
+    try:
+        if session.get('user'):
+            _title = request.form['inputTitle']
+            _releaseYear = request.form['inputReleaseYear']
+            _rating = request.form['inputRating']
+            _synopsis = request.form['inputSynopsis']
+            _movieLength = request.form['inputMovieLength']
+            _genre = request.form['inputGenre']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_addMovie',(_title,_releaseYear,_rating,_synopsis,_movieLength,_genre))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                return redirect('/userHome')
+            else:
+                return render_template('error.html',error = 'An error occurred!')
+
+        else:
+            return render_template('error.html',error = 'Unauthorized Access')
+    except Exception as e:
+        return render_template('error.html',error = str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
 
 
 if __name__ == "__main__":
