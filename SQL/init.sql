@@ -1,7 +1,7 @@
 
 --database
 
-drop movieapp;
+drop database movieapp;
 create database movieapp;
 
 --User table
@@ -70,7 +70,8 @@ CREATE TABLE Movie (
 	Synopsis VARCHAR(100),
 	MovieLength VARCHAR(5),
 	GenreName VARCHAR(10),
-	PRIMARY KEY(MovieID)
+    Image LONGBLOB  NULL,
+    PRIMARY KEY(MovieID)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
 CREATE TABLE Director (
@@ -108,6 +109,7 @@ CREATE TABLE DirectedBy (
 --Add movie
 
 DELIMITER $$
+DROP procedure IF EXISTS `sp_addMovie`;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addMovie`(
     IN p_title varchar(20),
     IN p_releaseyear INT,
@@ -123,7 +125,8 @@ BEGIN
         Rating,
 	Synopsis,
 	MovieLength,
-	GenreName
+	GenreName,
+    Image
     )
     values
     (
@@ -132,10 +135,11 @@ BEGIN
         p_rating,
         p_synopsis,
         p_movielength,
-        p_genrename
+        p_genrename,
+        NULL
     );
 END$$
- 
+
 DELIMITER ;
 ;
 
@@ -149,9 +153,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addDirector`(
     IN p_birthplace varchar(100)
 )
 BEGIN
-    IF (SELECT count(*) FROM Director 
+    IF (SELECT count(*) FROM Director
 	WHERE FirstName = p_firstname AND LastName = p_lastname
-	) > 0 THEN
+) <= 0 THEN
     insert into Director (
         FirstName,
 	LastName,
@@ -167,7 +171,37 @@ BEGIN
     );
      END IF;
 END$$
- 
+
+DELIMITER ;
+;
+
+--Add director name
+DROP procedure IF EXISTS `sp_addDirectorName`;
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addDirectorName`(
+    IN p_firstname varchar(10),
+    IN p_lastname varchar(10)
+)
+BEGIN
+    IF (SELECT count(*) FROM Director
+	WHERE FirstName = p_firstname AND LastName = p_lastname
+) <= 0 THEN
+    insert into Director (
+        FirstName,
+	LastName,
+	Nationality,
+	BirthPlace
+    )
+    values
+    (
+        p_firstname,
+    	p_lastname,
+        null,
+        null
+    );
+     END IF;
+END$$
+
 DELIMITER ;
 ;
 
@@ -181,9 +215,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addActor`(
     IN p_birthplace varchar(100)
 )
 BEGIN
-    IF (SELECT count(*) FROM Actor 
+    IF (SELECT count(*) FROM Actor
 	WHERE FirstName = p_firstname AND LastName = p_lastname
-	) > 0 THEN
+) <= 0 THEN
     insert into Actor (
         FirstName,
 	LastName,
@@ -199,7 +233,37 @@ BEGIN
     );
      END IF;
 END$$
- 
+
+DELIMITER ;
+;
+
+--Add actor name
+DROP procedure IF EXISTS `sp_addActorName`;
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addActorName`(
+    IN p_firstname varchar(10),
+    IN p_lastname varchar(10)
+)
+BEGIN
+    IF (SELECT count(*) FROM Actor
+	WHERE FirstName = p_firstname AND LastName = p_lastname
+) <= 0 THEN
+    insert into Actor (
+        FirstName,
+	LastName,
+	Nationality,
+	BirthPlace
+    )
+    values
+    (
+        p_firstname,
+    	p_lastname,
+        null,
+        null
+    );
+     END IF;
+END$$
+
 DELIMITER ;
 ;
 
@@ -211,7 +275,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addMovieActor`(
     IN p_movieid int
 )
 BEGIN
-    
+
     insert into MovieActor (
         ActorID,
 	MovieID
@@ -222,7 +286,7 @@ BEGIN
     	p_movieid
     );
 END$$
- 
+
 DELIMITER ;
 ;
 
@@ -234,7 +298,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addDirectedBy`(
     IN p_movieid int
 )
 BEGIN
-    
+
     insert into DirectedBy (
         DirectorID,
 	MovieID
@@ -245,8 +309,54 @@ BEGIN
     	p_movieid
     );
 END$$
- 
+
 DELIMITER ;
 ;
 
+-- Get Director associated with a movie;
+SELECT firstname, lastname FROM Movie NATURAL JOIN DirectedBy, Director WHERE Director.DirectorID = DirectedBy.DirectorID and MovieID = 48;
 
+-- Get Actor associated with a movie.
+ SELECT firstname, lastname FROM Movie NATURAL JOIN MovieActor, Actor WHERE Actor.ActorID = MovieActor.ActorID and MovieID = 51;
+
+ -- Review table
+
+CREATE TABLE Review (
+    ReviewID INT AUTO_INCREMENT PRIMARY KEY,
+    MovieID INT,
+    UserID BIGINT,
+    Review VARCHAR(100),
+    ReviewDate DATE,
+    FOREIGN KEY(MovieID) REFERENCES Movie(MovieID)
+    ON DELETE CASCADE,
+    FOREIGN KEY(UserID) REFERENCES User(UserID)
+    ON DELETE CASCADE
+)ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+-- Add Review
+DROP procedure IF EXISTS `sp_addReview`;
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addReview`(
+    IN p_movieid int,
+    IN p_userid bigint,
+    IN p_review varchar(100)
+)
+BEGIN
+
+    insert into Review (
+        MovieID,
+        UserID,
+        Review,
+        ReviewDate
+    )
+    values
+    (
+    	p_movieid,
+        p_userid,
+        p_review,
+        NOW()
+    );
+END$$
+
+DELIMITER ;
+;
