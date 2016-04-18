@@ -1,7 +1,8 @@
-
+import os
 from flask import Flask, render_template, json, request, redirect, session
 from flask.ext.mysql import MySQL
 from werkzeug import generate_password_hash, check_password_hash
+from jinja2 import Environment, FileSystemLoader
 
 app = Flask(__name__)
 app.secret_key = 'ssh...Big secret!'
@@ -10,10 +11,11 @@ app.secret_key = 'ssh...Big secret!'
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'remo161196'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'tekken5'
 app.config['MYSQL_DATABASE_DB'] = 'movieapp'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
+
 
 # route to index.html
 @app.route("/")
@@ -92,12 +94,36 @@ def validateLogin():
 @app.route('/userHome')
 def userHome():
     if session.get('user'):
-        return render_template('userHome.html')
+        con = mysql.connect()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM Movie ORDER BY MovieID DESC");
+        data = cursor.fetchall()
+
+        data_dict = []
+        for i in data:
+            data_dic = {
+                    'MovieID': i[0],
+                    'Title': i[1],
+                    'ReleaseYear': i[2],
+                    'Rating': i[3],
+                    'Synopsis': i[4],
+                    'MovieLength': i[5],
+                    'GenreName': i[6]}
+
+            data_dict.append(data_dic)
+
+        #return json.dumps(data_dict)
+        # generate template and assign variables
+        loopdata = data_dict
+        return render_template('userHome.html', loopdata=loopdata)
+
+        # return the output
+        return output
     else:
         return render_template('error.html',error = 'Unauthorized Access')
 
 @app.route('/showAddMovie')
-def showAddWish():
+def showAddMovie():
     return render_template('addMovie.html')
 
 @app.route('/logout')
@@ -117,7 +143,18 @@ def addMovie():
             _genre = request.form['inputGenre']
             _directorFirstName1 = request.form['inputDirectorFirstName1']
             _directorLastName1 = request.form['inputDirectorLastName1']
-
+            _directorFirstName2 = request.form['inputDirectorFirstName2']
+            _directorLastName2 = request.form['inputDirectorLastName2']
+            _actorFirstName1 = request.form['inputActorFirstName1']
+            _actorLastName1 = request.form['inputActorLastName1']
+            _actorFirstName2 = request.form['inputActorFirstName2']
+            _actorLastName2 = request.form['inputActorLastName2']
+            _actorFirstName3 = request.form['inputActorFirstName3']
+            _actorLastName3 = request.form['inputActorLastName3']
+            _actorFirstName4 = request.form['inputActorFirstName4']
+            _actorLastName4 = request.form['inputActorLastName4']
+            _actorFirstName5 = request.form['inputActorFirstName5']
+            _actorLastName5 = request.form['inputActorLastName5']
 
             conn = mysql.connect()
             cursor = conn.cursor()
@@ -131,10 +168,8 @@ def addMovie():
                 return render_template('error.html',error = 'An error occurred!')
 
             cursor.execute("SELECT MovieID FROM Movie WHERE Title = %s", (_title,))
-            data = cursor.fetchall()
-            for i in data:
-                for j in i:
-                    MovieID = j
+            data = cursor.fetchone()
+            MovieID = data[0]
 
             cursor.callproc('sp_addDirectorName',(_directorFirstName1,_directorLastName1))
             data = cursor.fetchall()
@@ -142,21 +177,137 @@ def addMovie():
                 conn.commit()
                 #return redirect('/userHome')
                 cursor.execute("SELECT DirectorID FROM Director WHERE FirstName = %s AND LastName = %s", (_directorFirstName1,_directorLastName1,))
-                data = cursor.fetchall()
-                for i in data:
-                    for j in i:
-                        DirectorID = j
+                data = cursor.fetchone()
+                DirectorID = data[0]
                 cursor.callproc('sp_addDirectedBy',(DirectorID,MovieID))
                 data = cursor.fetchall()
                 if len(data) is 0:
                     conn.commit()
-                    return redirect('/userHome')
+                    #return redirect('/userHome')
                 else:
                     return render_template('error.html',error = 'An error occurred!')
-
             else:
                 return render_template('error.html',error = 'An error occurred!')
 
+
+            if _directorFirstName2 != '':
+                cursor.callproc('sp_addDirectorName',(_directorFirstName2,_directorLastName2))
+                data = cursor.fetchall()
+                if len(data) is 0:
+                    conn.commit()
+                    #return redirect('/userHome')
+                    cursor.execute("SELECT DirectorID FROM Director WHERE FirstName = %s AND LastName = %s", (_directorFirstName2,_directorLastName2,))
+                    data = cursor.fetchone()
+                    DirectorID = data[0]
+                    cursor.callproc('sp_addDirectedBy',(DirectorID,MovieID))
+                    data = cursor.fetchall()
+                    if len(data) is 0:
+                        conn.commit()
+                        #return redirect('/userHome')
+                    else:
+                        return render_template('error.html',error = 'An error occurred!')
+
+                else:
+                    return render_template('error.html',error = 'An error occurred!')
+
+            if _actorFirstName1 != '':
+                cursor.callproc('sp_addActorName',(_actorFirstName1,_actorLastName1))
+                data = cursor.fetchall()
+                if len(data) is 0:
+                    conn.commit()
+                    #return redirect('/userHome')
+                    cursor.execute("SELECT ActorID FROM Actor WHERE FirstName = %s AND LastName = %s", (_actorFirstName1,_actorLastName1,))
+                    data = cursor.fetchone()
+                    ActorID = data[0]
+                    cursor.callproc('sp_addMovieActor',(ActorID,MovieID))
+                    data = cursor.fetchall()
+                    if len(data) is 0:
+                        conn.commit()
+                        #return redirect('/userHome')
+                    else:
+                        return render_template('error.html',error = 'An error occurred!')
+                else:
+                    return render_template('error.html',error = 'An error occurred!')
+
+            if _actorFirstName2 != '':
+                cursor.callproc('sp_addActorName',(_actorFirstName2,_actorLastName2))
+                data = cursor.fetchall()
+                if len(data) is 0:
+                    conn.commit()
+                    #return redirect('/userHome')
+                    cursor.execute("SELECT ActorID FROM Actor WHERE FirstName = %s AND LastName = %s", (_actorFirstName2,_actorLastName2,))
+                    data = cursor.fetchone()
+                    ActorID = data[0]
+                    cursor.callproc('sp_addMovieActor',(ActorID,MovieID))
+                    data = cursor.fetchall()
+                    if len(data) is 0:
+                        conn.commit()
+                        #return redirect('/userHome')
+                    else:
+                        return render_template('error.html',error = 'An error occurred!')
+                else:
+                    return render_template('error.html',error = 'An error occurred!')
+
+            if _actorFirstName3 != '':
+                cursor.callproc('sp_addActorName',(_actorFirstName3,_actorLastName3))
+                data = cursor.fetchall()
+                if len(data) is 0:
+                    conn.commit()
+                    #return redirect('/userHome')
+                    cursor.execute("SELECT ActorID FROM Actor WHERE FirstName = %s AND LastName = %s", (_actorFirstName3,_actorLastName3,))
+                    data = cursor.fetchone()
+                    ActorID = data[0]
+                    cursor.callproc('sp_addMovieActor',(ActorID,MovieID))
+                    data = cursor.fetchall()
+                    if len(data) is 0:
+                        conn.commit()
+                        #return redirect('/userHome')
+                    else:
+                        return render_template('error.html',error = 'An error occurred!')
+                else:
+                    return render_template('error.html',error = 'An error occurred!')
+
+            if _actorFirstName4 != '':
+                cursor.callproc('sp_addActorName',(_actorFirstName4,_actorLastName4))
+                data = cursor.fetchall()
+                if len(data) is 0:
+                    conn.commit()
+                    #return redirect('/userHome')
+                    cursor.execute("SELECT ActorID FROM Actor WHERE FirstName = %s AND LastName = %s", (_actorFirstName4,_actorLastName4,))
+                    data = cursor.fetchone()
+                    ActorID = data[0]
+                    cursor.callproc('sp_addMovieActor',(ActorID,MovieID))
+                    data = cursor.fetchall()
+                    if len(data) is 0:
+                        conn.commit()
+                        #return redirect('/userHome')
+                    else:
+                        return render_template('error.html',error = 'An error occurred!')
+                else:
+                    return render_template('error.html',error = 'An error occurred!')
+
+            if _actorFirstName5 != '':
+                cursor.callproc('sp_addActorName',(_actorFirstName5,_actorLastName5))
+                data = cursor.fetchall()
+                if len(data) is 0:
+                    conn.commit()
+                    #return redirect('/userHome')
+                    cursor.execute("SELECT ActorID FROM Actor WHERE FirstName = %s AND LastName = %s", (_actorFirstName5,_actorLastName5,))
+                    data = cursor.fetchone()
+                    ActorID = data[0]
+                    cursor.callproc('sp_addMovieActor',(ActorID,MovieID))
+                    data = cursor.fetchall()
+                    if len(data) is 0:
+                        conn.commit()
+                        return redirect('/userHome')
+                    else:
+                        return render_template('error.html',error = 'An error occurred!')
+                else:
+                    return render_template('error.html',error = 'An error occurred!')
+
+
+            return redirect('/userHome')
+            #return render_template('error.html',error = str(MovieID))
 
 
 
@@ -170,7 +321,119 @@ def addMovie():
         conn.close()
 
 
+@app.route('/movie/<movie_name>/')
+def movie(movie_name):
+    if session.get('user'):
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Movie WHERE Title = %s", (movie_name,))
+        data = cursor.fetchone()
+        data_dict = []
+        data_dict = {
+            'MovieID': data[0],
+            'Title': data[1],
+            'ReleaseYear': data[2],
+            'Rating': data[3],
+            'Synopsis': data[4],
+            'MovieLength': data[5],
+            'GenreName': data[6]
+            
+        }
+        MovieID = data[0]
+        UserID = session.get('user')
+        cursor.execute("SELECT firstname, lastname FROM Movie NATURAL JOIN DirectedBy, Director WHERE Director.DirectorID = DirectedBy.DirectorID and MovieID = %s",  (MovieID,))
+        director_data = cursor.fetchall()
+        cursor.execute("SELECT firstname, lastname FROM Movie NATURAL JOIN MovieActor, Actor WHERE Actor.ActorID = MovieActor.ActorID and MovieID = %s",  (MovieID,))
+        actor_data = cursor.fetchall()
+        cursor.execute("SELECT Review, ReviewDate, UserName FROM Review NATURAL JOIN User WHERE MovieID = %s AND UserID <> %s ORDER BY ReviewID DESC",  (MovieID, UserID,))
+        review_data = cursor.fetchall()
+        cursor.execute("SELECT Review, ReviewDate, UserName FROM Review NATURAL JOIN User WHERE MovieID = %s AND UserID = %s ORDER BY ReviewID DESC",  (MovieID, UserID,))
+        my_review_data = cursor.fetchall()
+        return render_template('movieDetail.html', movieData = data_dict, director_name=director_data, actor_name=actor_data, review_data = review_data, my_review_data=my_review_data)
 
+    else:
+        return render_template('error.html',error = 'Unauthorized Access')
+
+@app.route('/userHome', methods=['POST'])
+def searchMovie():
+    if session.get('user'):
+        #return render_template('error.html',error = request.form['searchText'])
+        con = mysql.connect()
+        cursor = con.cursor()
+        text = request.form['searchText']
+        text = '%' + text + '%'
+        cursor.execute("SELECT * FROM Movie WHERE Title LIKE %s ORDER BY MovieID DESC",(text,));
+        data = cursor.fetchall()
+
+        data_dict = []
+        for i in data:
+            data_dic = {
+                    'MovieID': i[0],
+                    'Title': i[1],
+                    'ReleaseYear': i[2],
+                    'Rating': i[3],
+                    'Synopsis': i[4],
+                    'MovieLength': i[5],
+                    'GenreName': i[6]}
+
+            data_dict.append(data_dic)
+
+        #return json.dumps(data_dict)
+        # generate template and assign variables
+        loopdata = data_dict
+        return render_template('userHome.html', loopdata=loopdata)
+
+        # return the output
+        return output
+    else:
+        return render_template('error.html',error = 'Unauthorized Access')
+
+@app.route('/movie/<movie_name>/', methods=['POST'])
+def review(movie_name):
+    if session.get('user'):
+        review_text = request.form['inputReview']
+        UserID = session.get('user')
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Movie WHERE Title = %s", (movie_name,))
+        data = cursor.fetchone()
+        MovieID = data[0]
+
+        if review_text != '':
+            cursor.callproc('sp_addReview',(MovieID, UserID, review_text))
+            data = cursor.fetchall()
+            if len(data) is 0:
+                conn.commit()
+                cursor.execute("SELECT * FROM Movie WHERE Title = %s", (movie_name,))
+                data = cursor.fetchone()
+                data_dict = []
+                data_dict = {
+                    'MovieID': data[0],
+                    'Title': data[1],
+                    'ReleaseYear': data[2],
+                    'Rating': data[3],
+                    'Synopsis': data[4],
+                    'MovieLength': data[5],
+                    'GenreName': data[6]
+                }
+            else:
+                return render_template('error.html',error = 'An error occurred!')
+
+        UserID = session.get('user')
+        cursor.execute("SELECT firstname, lastname FROM Movie NATURAL JOIN DirectedBy, Director WHERE Director.DirectorID = DirectedBy.DirectorID and MovieID = %s",  (MovieID,))
+        director_data = cursor.fetchall()
+        cursor.execute("SELECT firstname, lastname FROM Movie NATURAL JOIN MovieActor, Actor WHERE Actor.ActorID = MovieActor.ActorID and MovieID = %s",  (MovieID,))
+        actor_data = cursor.fetchall()
+        cursor.execute("SELECT Review, ReviewDate, UserName FROM Review NATURAL JOIN User WHERE MovieID = %s AND UserID <> %s ORDER BY ReviewID DESC",  (MovieID, UserID,))
+        review_data = cursor.fetchall()
+        cursor.execute("SELECT Review, ReviewDate, UserName FROM Review NATURAL JOIN User WHERE MovieID = %s AND UserID = %s ORDER BY ReviewID DESC",  (MovieID, UserID,))
+        my_review_data = cursor.fetchall()
+        return render_template('movieDetail.html', movieData = data_dict, director_name=director_data, actor_name=actor_data, review_data = review_data, my_review_data=my_review_data)
+
+    else:
+        return render_template('error.html',error = 'Unauthorized Access')
 
 if __name__ == "__main__":
+    app.debug = True
     app.run()
