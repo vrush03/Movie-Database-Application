@@ -6,12 +6,12 @@ create database movieapp;
 
 --User table
 
-CREATE TABLE `movieapp`.`User` (
-`UserId` BIGINT NULL AUTO_INCREMENT,
-`UserName` VARCHAR(255) NULL,
-`Useremail` VARCHAR(255) NULL,
-`UserPassword` VARCHAR(255) NULL,
-PRIMARY KEY (`UserId`));
+    CREATE TABLE `movieapp`.`User` (
+    `UserId` BIGINT NULL AUTO_INCREMENT,
+    `UserName` VARCHAR(255) NULL,
+    `Useremail` VARCHAR(255) NULL,
+    `UserPassword` VARCHAR(255) NULL,
+    PRIMARY KEY (`UserId`));
 
 --select database
 
@@ -64,12 +64,12 @@ DELIMITER ;
 
 CREATE TABLE Movie (
 	MovieID INT AUTO_INCREMENT,
-	Title VARCHAR(20) NOT NULL,
+	Title VARCHAR(100) NOT NULL,
 	ReleaseYear INT,
-	Rating NUMERIC(1, 1),
+	Rating VARCHAR(3),
 	Synopsis VARCHAR(100),
 	MovieLength VARCHAR(5),
-	GenreName VARCHAR(10),
+	GenreName VARCHAR(100),
     Image LONGBLOB  NULL,
     PRIMARY KEY(MovieID)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
@@ -111,12 +111,12 @@ CREATE TABLE DirectedBy (
 DELIMITER $$
 DROP procedure IF EXISTS `sp_addMovie`;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addMovie`(
-    IN p_title varchar(20),
+    IN p_title varchar(100),
     IN p_releaseyear INT,
-    IN p_rating NUMERIC(1,1),
+    IN p_rating varchar(3),
     IN p_synopsis varchar(100),
     IN p_movielength VARCHAR(5),
-    IN p_genrename VARCHAR(10)
+    IN p_genrename VARCHAR(100)
 )
 BEGIN
     insert into Movie (
@@ -139,7 +139,6 @@ BEGIN
         NULL
     );
 END$$
-
 DELIMITER ;
 ;
 
@@ -360,3 +359,7 @@ END$$
 
 DELIMITER ;
 ;
+
+
+--To add Images
+update Movie set Image="/static/Images/<Image_name>" where MovieID=ID;--Change MovieID and Url Accordingly
