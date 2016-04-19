@@ -160,7 +160,7 @@ def addMovie():
             cursor = conn.cursor()
             cursor.callproc('sp_addMovie',(_title,_releaseYear,_rating,_synopsis,_movieLength,_genre))
             data = cursor.fetchall()
-
+            print _title,_releaseYear,_rating,_synopsis,_movieLength,_genre
             if len(data) is 0:
                 conn.commit()
                 #return redirect('/userHome')
@@ -336,9 +336,11 @@ def movie(movie_name):
             'Rating': data[3],
             'Synopsis': data[4],
             'MovieLength': data[5],
-            'GenreName': data[6]
+            'GenreName': data[6],
+            'Image': data[7]
             
         }
+        #print data_dict['Image']
         MovieID = data[0]
         UserID = session.get('user')
         cursor.execute("SELECT firstname, lastname FROM Movie NATURAL JOIN DirectedBy, Director WHERE Director.DirectorID = DirectedBy.DirectorID and MovieID = %s",  (MovieID,))
@@ -374,7 +376,9 @@ def searchMovie():
                     'Rating': i[3],
                     'Synopsis': i[4],
                     'MovieLength': i[5],
-                    'GenreName': i[6]}
+                    'GenreName': i[6],
+                    'Image': i[7]
+                    }
 
             data_dict.append(data_dic)
 
@@ -415,7 +419,8 @@ def review(movie_name):
                     'Rating': data[3],
                     'Synopsis': data[4],
                     'MovieLength': data[5],
-                    'GenreName': data[6]
+                    'GenreName': data[6],
+                    'Image': data[7]
                 }
             else:
                 return render_template('error.html',error = 'An error occurred!')
