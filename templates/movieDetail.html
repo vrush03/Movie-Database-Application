@@ -8,7 +8,7 @@
 
     <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
     <link href="../static/signup.css" rel="stylesheet">
-    <script src="../static/js/jquery-2.2.1.min.js"></script>
+<script src="../static/js/jquery-2.2.1.min.js"></script>
     <script src="../static/js/signup.js"></script>
 
   </head>
@@ -41,6 +41,11 @@
         </div>
         </div>
         </div>
+        
+            
+        <h4 class="list-group-item-heading text-center">Image :</h4>
+        <div><p class="list-group-item-text text-center"><img src="{{movieData['Image']}}"></div>
+        
         <h2 class="list-group-item-heading text-center">Directed By:</h2>
         <br />
         {% for x in director_name %}
