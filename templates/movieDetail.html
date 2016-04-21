@@ -7,9 +7,6 @@
     <link href="https://bootswatch.com/flatly/bootstrap.min.css" rel="stylesheet">
 
     <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
-    <link href="../static/signup.css" rel="stylesheet">
-<script src="../static/js/jquery-2.2.1.min.js"></script>
-    <script src="../static/js/signup.js"></script>
 
   </head>
 
@@ -26,34 +23,34 @@
         <h3 class="text-muted">Movie Database Application</h3>
       </div>
       <h1 class="text-center" style="margin-bottom:3pc">{{movieData['Title']}}</h1>
-      <div class="jumbotron">
         <div class="list-group">
         <div class="list-group-item active">
         <div class="row">
-            <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Rating : {{movieData['Rating']}}/10</h4></div>
+            {% if movieData['Rating'] %}
+                <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Rating : {{movieData['Rating']}}/10</h4></div>
+            {% else %}
+                <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Rating : Not rated yet</h4></div>
+            {% endif %}
             <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Genre : {{movieData['GenreName']}}</h4></div>
             <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Release Year : {{movieData['ReleaseYear']}}</h4></div>
         </div>
         <div class="row">
             <br />
             <h4 class="list-group-item-heading text-center">Synopsis :</h4>
-            <div><p class="list-group-item-text text-center">{{movieData['Synopsis']}}</p></div>
+            <div style="word-wrap: break-word"><p class="list-group-item-text text-center">{{movieData['Synopsis']}}</p></div>
         </div>
         </div>
         </div>
-        
-            
-        <h4 class="list-group-item-heading text-center">Image :</h4>
-        <div><p class="list-group-item-text text-center"><img src="{{movieData['Image']}}"></div>
-        
         <h2 class="list-group-item-heading text-center">Directed By:</h2>
         <br />
         {% for x in director_name %}
         <div class="list-group">
         <div class="list-group-item active">
         <div class="row">
+            <a href="{{ url_for('director', directorid=x[2]) }}" style="color:white">
             <div class="col-sm-4"><h4 class="text-left">Director {{loop.index}} :</h4></div>
             <div class="col-sm-4"><h4>{{x[0]}} {{x[1]}}</h4></div>
+            </a>
         </div>
         </div>
         </div>
@@ -67,8 +64,10 @@
                 <div class="list-group">
                 <div class="list-group-item active">
                 <div class="row">
+                    <a href="{{ url_for('actor', actorid=x[2]) }}" style="color:white">
                     <div class="col-sm-4"><h4 class="text-left">Actor/Actress {{loop.index}} :</h4></div>
                     <div class="col-sm-4"><h4>{{x[0]}} {{x[1]}}</h4></div>
+                    </a>
                 </div>
                 </div>
                 </div>
@@ -129,20 +128,21 @@
                 <div class="col-lg-10 col-lg-offset-1">
                   <div class="input-group">
                     <textarea class="form-control" id="txtPost" name="inputReview" placeholder="Add a review..."  maxlength="100" required="true"></textarea>
+                    <input type="number" class="form-control" name="inputRating" value="5" min="0" max="10" step="0.1" />
                     <span class="input-group-btn">
                      <button class="btn btn-default" type="submit">Add</button>
                     </span>
+
                   </div><!-- /input-group -->
                 </div><!-- /.col-lg-6 -->
             </form>
         </div>
-      </div>
 
 
 
 
       <footer class="footer">
-        <p>&copy; Company 2015</p>
+        <p>&copy; Movie Company 2016</p>
       </footer>
 
     </div>

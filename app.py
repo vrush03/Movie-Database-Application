@@ -101,14 +101,17 @@ def userHome():
 
         data_dict = []
         for i in data:
+            cursor.execute("SELECT TRUNCATE(avg(Rating), 1) FROM Review WHERE MovieID = %s", (i[0],))
+            rating = cursor.fetchone()[0]
             data_dic = {
                     'MovieID': i[0],
                     'Title': i[1],
                     'ReleaseYear': i[2],
-                    'Rating': i[3],
-                    'Synopsis': i[4],
-                    'MovieLength': i[5],
-                    'GenreName': i[6]}
+                    'MovieLength': i[3],
+                    'GenreName': i[4],
+                    'Synopsis': i[5],
+                    'Rating' : rating
+                    }
 
             data_dict.append(data_dic)
 
@@ -137,7 +140,6 @@ def addMovie():
         if session.get('user'):
             _title = request.form['inputTitle']
             _releaseYear = request.form['inputReleaseYear']
-            _rating = request.form['inputRating']
             _synopsis = request.form['inputSynopsis']
             _movieLength = request.form['inputMovieLength']
             _genre = request.form['inputGenre']
@@ -158,9 +160,9 @@ def addMovie():
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('sp_addMovie',(_title,_releaseYear,_rating,_synopsis,_movieLength,_genre))
+            cursor.callproc('sp_addMovie',(_title,_releaseYear,_movieLength,_genre,_synopsis))
             data = cursor.fetchall()
-            print _title,_releaseYear,_rating,_synopsis,_movieLength,_genre
+
             if len(data) is 0:
                 conn.commit()
                 #return redirect('/userHome')
@@ -308,10 +310,6 @@ def addMovie():
 
             return redirect('/userHome')
             #return render_template('error.html',error = str(MovieID))
-
-
-
-
         else:
             return render_template('error.html',error = 'Unauthorized Access')
     except Exception as e:
@@ -328,24 +326,24 @@ def movie(movie_name):
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Movie WHERE Title = %s", (movie_name,))
         data = cursor.fetchone()
+        MovieID = data[0]
+        cursor.execute("SELECT TRUNCATE(avg(Rating), 1) FROM Review WHERE MovieID = %s", (MovieID,))
+        rating = cursor.fetchone()[0]
         data_dict = []
         data_dict = {
             'MovieID': data[0],
             'Title': data[1],
             'ReleaseYear': data[2],
-            'Rating': data[3],
-            'Synopsis': data[4],
-            'MovieLength': data[5],
-            'GenreName': data[6],
-            'Image': data[7]
-            
+            'MovieLength': data[3],
+            'GenreName': data[4],
+            'Synopsis': data[5],
+            'Rating' : rating
         }
-        #print data_dict['Image']
-        MovieID = data[0]
+
         UserID = session.get('user')
-        cursor.execute("SELECT firstname, lastname FROM Movie NATURAL JOIN DirectedBy, Director WHERE Director.DirectorID = DirectedBy.DirectorID and MovieID = %s",  (MovieID,))
+        cursor.execute("SELECT firstname, lastname, Director.DirectorID FROM Movie NATURAL JOIN DirectedBy, Director WHERE Director.DirectorID = DirectedBy.DirectorID and MovieID = %s",  (MovieID,))
         director_data = cursor.fetchall()
-        cursor.execute("SELECT firstname, lastname FROM Movie NATURAL JOIN MovieActor, Actor WHERE Actor.ActorID = MovieActor.ActorID and MovieID = %s",  (MovieID,))
+        cursor.execute("SELECT firstname, lastname, Actor.ActorID FROM Movie NATURAL JOIN MovieActor, Actor WHERE Actor.ActorID = MovieActor.ActorID and MovieID = %s",  (MovieID,))
         actor_data = cursor.fetchall()
         cursor.execute("SELECT Review, ReviewDate, UserName FROM Review NATURAL JOIN User WHERE MovieID = %s AND UserID <> %s ORDER BY ReviewID DESC",  (MovieID, UserID,))
         review_data = cursor.fetchall()
@@ -363,22 +361,38 @@ def searchMovie():
         con = mysql.connect()
         cursor = con.cursor()
         text = request.form['searchText']
+        option = request.form['option']
         text = '%' + text + '%'
-        cursor.execute("SELECT * FROM Movie WHERE Title LIKE %s ORDER BY MovieID DESC",(text,));
+        try:
+            if option == "opt1":
+                print "sdsds"
+                cursor.execute("SELECT * FROM Movie WHERE Title LIKE %s ORDER BY MovieID DESC",(text,))
+            elif option == "opt2":
+                cursor.execute("SELECT * FROM Movie WHERE ReleaseYear LIKE %s ORDER BY MovieID DESC",(text,))
+            elif option == "opt3":
+                cursor.execute("SELECT * FROM Movie WHERE GenreName LIKE %s ORDER BY MovieID DESC",(text,))
+            else:
+                return render_template('error.html',error = 'Invalid Input!')
+
+        except Exception as e:
+            return render_template('error.html',error = str(e))
+
         data = cursor.fetchall()
 
         data_dict = []
         for i in data:
+            cursor.execute("SELECT TRUNCATE(avg(Rating), 1) FROM Review WHERE MovieID = %s", (i[0],))
+            rating = cursor.fetchone()[0]
+
             data_dic = {
                     'MovieID': i[0],
                     'Title': i[1],
                     'ReleaseYear': i[2],
-                    'Rating': i[3],
-                    'Synopsis': i[4],
-                    'MovieLength': i[5],
-                    'GenreName': i[6],
-                    'Image': i[7]
-                    }
+                    'MovieLength': i[3],
+                    'GenreName': i[4],
+                    'Synopsis': i[5],
+                    'Rating' : rating
+            }
 
             data_dict.append(data_dic)
 
@@ -396,6 +410,7 @@ def searchMovie():
 def review(movie_name):
     if session.get('user'):
         review_text = request.form['inputReview']
+        rating_text = request.form['inputRating']
         UserID = session.get('user')
 
         conn = mysql.connect()
@@ -405,10 +420,14 @@ def review(movie_name):
         MovieID = data[0]
 
         if review_text != '':
-            cursor.callproc('sp_addReview',(MovieID, UserID, review_text))
+            cursor.callproc('sp_addReview',(MovieID, UserID, review_text, rating_text))
             data = cursor.fetchall()
             if len(data) is 0:
                 conn.commit()
+
+                cursor.execute("SELECT TRUNCATE(avg(Rating), 1) FROM Review WHERE MovieID = %s", (MovieID,))
+                rating = cursor.fetchone()[0]
+                print rating
                 cursor.execute("SELECT * FROM Movie WHERE Title = %s", (movie_name,))
                 data = cursor.fetchone()
                 data_dict = []
@@ -416,11 +435,10 @@ def review(movie_name):
                     'MovieID': data[0],
                     'Title': data[1],
                     'ReleaseYear': data[2],
-                    'Rating': data[3],
-                    'Synopsis': data[4],
-                    'MovieLength': data[5],
-                    'GenreName': data[6],
-                    'Image': data[7]
+                    'MovieLength': data[3],
+                    'GenreName': data[4],
+                    'Synopsis': data[5],
+                    'Rating' : rating
                 }
             else:
                 return render_template('error.html',error = 'An error occurred!')
@@ -438,6 +456,79 @@ def review(movie_name):
 
     else:
         return render_template('error.html',error = 'Unauthorized Access')
+
+@app.route('/showAddDirector')
+def showAddDirector():
+    return render_template('addDirector.html')
+
+@app.route('/showAddActor')
+def showAddActor():
+    return render_template('addActor.html')
+
+@app.route('/addDirector', methods=['POST'])
+def addDirector():
+    _inputNationality = request.form['inputNationality']
+    _inputBirthPlace = request.form['inputBirthPlace']
+    _inputDirectorFirstName = request.form['inputDirectorFirstName']
+    _inputDirectorLastName = request.form['inputDirectorLastName']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_addDirector',(_inputDirectorFirstName,_inputDirectorLastName,_inputNationality,_inputBirthPlace))
+    data = cursor.fetchall()
+    if len(data) is 0:
+        conn.commit()
+        return redirect('/userHome')
+    else:
+        return render_template('error.html',error = 'An error occurred!')
+
+@app.route('/addActor', methods=['POST'])
+def addActor():
+    _inputNationality = request.form['inputNationality']
+    _inputBirthPlace = request.form['inputBirthPlace']
+    _inputActorFirstName = request.form['inputActorFirstName']
+    _inputActorLastName = request.form['inputActorLastName']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_addActor',(_inputActorFirstName,_inputActorLastName,_inputNationality,_inputBirthPlace))
+    data = cursor.fetchall()
+    if len(data) is 0:
+        conn.commit()
+        return redirect('/userHome')
+    else:
+        return render_template('error.html',error = 'An error occurred!')
+
+@app.route('/actor/<actorid>/')
+def actor(actorid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Actor WHERE ActorID = %s",  (actorid,))
+    data = cursor.fetchone()
+    data_dict = []
+    data_dict = {
+        'firstname': data[1],
+        'lastname': data[2],
+        'nationality': data[3],
+        'birthplace': data[4]
+    }
+    return render_template('actorDetail.html',data = data_dict)
+
+@app.route('/director/<directorid>/')
+def director(directorid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Director WHERE DirectorID = %s",  (directorid,))
+    data = cursor.fetchone()
+    data_dict = []
+    data_dict = {
+        'firstname': data[1],
+        'lastname': data[2],
+        'nationality': data[3],
+        'birthplace': data[4]
+    }
+    return render_template('directorDetail.html',data = data_dict)
+
 
 if __name__ == "__main__":
     app.debug = True
