@@ -20,7 +20,7 @@ use movieapp;
 --User storedprocedure
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUser`(
+CREATE  PROCEDURE `sp_createUser`(
     IN p_name VARCHAR(255),
     IN p_email VARCHAR(255),
     IN p_password VARCHAR(255)
@@ -52,7 +52,7 @@ DELIMITER ;
 --User signin check
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(
+CREATE  PROCEDURE `sp_validateLogin`(
 IN p_useremail VARCHAR(255)
 )
 BEGIN
@@ -138,7 +138,7 @@ DELIMITER ;
 --Add director
 DROP procedure IF EXISTS `sp_addDirector`;
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addDirector`(
+CREATE  PROCEDURE `sp_addDirector`(
     IN p_firstname varchar(10),
     IN p_lastname varchar(10),
     IN p_nationality VARCHAR(10),
@@ -172,7 +172,7 @@ DELIMITER ;
 --Add director name
 DROP procedure IF EXISTS `sp_addDirectorName`;
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addDirectorName`(
+CREATE  PROCEDURE `sp_addDirectorName`(
     IN p_firstname varchar(10),
     IN p_lastname varchar(10)
 )
@@ -202,7 +202,7 @@ DELIMITER ;
 --Add Actor
 DROP procedure IF EXISTS `sp_addActor`;
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addActor`(
+CREATE  PROCEDURE `sp_addActor`(
     IN p_firstname varchar(10),
     IN p_lastname varchar(10),
     IN p_nationality VARCHAR(10),
@@ -236,7 +236,7 @@ DELIMITER ;
 --Add actor name
 DROP procedure IF EXISTS `sp_addActorName`;
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addActorName`(
+CREATE  PROCEDURE `sp_addActorName`(
     IN p_firstname varchar(10),
     IN p_lastname varchar(10)
 )
@@ -266,7 +266,7 @@ DELIMITER ;
 --Add MovieActor
 DROP procedure IF EXISTS `sp_addMovieActor`;
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addMovieActor`(
+CREATE  PROCEDURE `sp_addMovieActor`(
     IN p_actorid int,
     IN p_movieid int
 )
@@ -289,7 +289,7 @@ DELIMITER ;
 --Add DirectedBy
 DROP procedure IF EXISTS `sp_addDirectedBy`;
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addDirectedBy`(
+CREATE  PROCEDURE `sp_addDirectedBy`(
     IN p_directorid int,
     IN p_movieid int
 )
@@ -333,7 +333,7 @@ CREATE TABLE Review (
 -- Add Review
 DROP procedure IF EXISTS `sp_addReview`;
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addReview`(
+CREATE  PROCEDURE `sp_addReview`(
     IN p_movieid int,
     IN p_userid bigint,
     IN p_review varchar(100),
