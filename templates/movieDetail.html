@@ -31,13 +31,13 @@
             {% else %}
                 <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Rating : Not rated yet</h4></div>
             {% endif %}
-            <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Genre : {{movieData['Synopsis']}}</h4></div>
+            <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Genre : {{movieData['GenreName']}}</h4></div>
             <div class="col-sm-4"><h4 class="list-group-item-heading text-center">Release Year : {{movieData['ReleaseYear']}}</h4></div>
         </div>
         <div class="row">
             <br />
             <h4 class="list-group-item-heading text-center">Synopsis :</h4>
-            <div style="word-wrap: break-word"><p class="list-group-item-text text-center">{{movieData['MovieLength']}}</p></div>
+            <div style="word-wrap: break-word"><p class="list-group-item-text text-center">{{movieData['Synopsis']}}</p></div>
         </div>
         </div>
         </div>
@@ -142,7 +142,7 @@
 
 
       <footer class="footer">
-        <p>&copy; Movie Company 2016</p>
+        <p>&copy; Movie Company 2015</p>
       </footer>
 
     </div>
