@@ -430,6 +430,7 @@ def review(movie_name):
                 print rating
                 cursor.execute("SELECT * FROM Movie WHERE Title = %s", (movie_name,))
                 data = cursor.fetchone()
+                print data
                 data_dict = []
                 data_dict = {
                     'MovieID': data[0],
